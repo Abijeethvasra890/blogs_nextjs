@@ -1,10 +1,21 @@
 import connectMongo from "../../../utils/connectMongo";
 import postModel from "../../../models/postModel";
 
-export async function GET(){
+export async function GET(req){
+    const query = req.nextUrl.searchParams.get('q');
     try{
         await connectMongo();
-        const postData = await postModel.find({});
+        let postData;
+        if(query){
+            postData = await postModel.find({
+                $or : [
+                    {title: new RegExp(query, 'i')},
+                    {description: new RegExp(query, 'i')}
+                ]
+            });
+        }else{
+            postData = await postModel.find({});
+        }
         return Response.json(postData);
     }catch(err){
         return Response.json({message: err.message});
